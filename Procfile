@@ -1,2 +1,2 @@
-web: gunicorn gestao_clientes.wsgi
+web: python manage.py migrate && gunicorn gestao_clientes.wsgi
 
