@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}
+            {% block titulo %}Gestão de Clientes{% endblock %}
+        {% endblock %}
+    </title>
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    border: "hsl(var(--border))",
+                    input: "hsl(var(--input))",
+                    ring: "hsl(var(--ring))",
+                    background: "hsl(var(--background))",
+                    foreground: "hsl(var(--foreground))",
+                    primary: {
+                        DEFAULT: "hsl(var(--primary))",
+                        foreground: "hsl(var(--primary-foreground))",
+                        hover: "hsl(var(--primary-hover))",
+                    },
+                    secondary: {
+                        DEFAULT: "hsl(var(--secondary))",
+                        foreground: "hsl(var(--secondary-foreground))",
+                    },
+                    destructive: {
+                        DEFAULT: "hsl(var(--destructive))",
+                        foreground: "hsl(var(--destructive-foreground))",
+                    },
+                    muted: {
+                        DEFAULT: "hsl(var(--muted))",
+                        foreground: "hsl(var(--muted-foreground))",
+                    },
+                    accent: {
+                        DEFAULT: "hsl(var(--accent))",
+                        foreground: "hsl(var(--accent-foreground))",
+                        hover: "hsl(var(--accent-hover))",
+                    },
+                    popover: {
+                        DEFAULT: "hsl(var(--popover))",
+                        foreground: "hsl(var(--popover-foreground))",
+                    },
+                    card: {
+                        DEFAULT: "hsl(var(--card))",
+                        foreground: "hsl(var(--card-foreground))",
+                    },
+                },
+                backgroundImage: {
+                    'gradient-primary': 'var(--gradient-primary)',
+                    'gradient-accent': 'var(--gradient-accent)',
+                    'gradient-subtle': 'var(--gradient-subtle)',
+                },
+                boxShadow: {
+                    'sm': 'var(--shadow-sm)',
+                    'md': 'var(--shadow-md)',
+                    'lg': 'var(--shadow-lg)',
+                    'xl': 'var(--shadow-xl)',
+                },
+                transitionProperty: {
+                    'smooth': 'var(--transition-smooth)',
+                },
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+            },
+        },
+    };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    </script>
+    <style>
+    :root {
+        --background: 0 0% 98%;
+        --foreground: 265 55% 24%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 265 55% 24%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 265 55% 24%;
+
+        --primary: 265 55% 24%;
+        --primary-foreground: 0 0% 100%;
+        --primary-hover: 265 55% 20%;
+
+        --secondary: 200 6% 79%;
+        --secondary-foreground: 265 55% 24%;
+
+        --accent: 45 100% 59%;
+        --accent-foreground: 265 55% 24%;
+        --accent-hover: 45 100% 52%;
+
+        --muted: 200 6% 90%;
+        --muted-foreground: 265 20% 50%;
+
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 100%;
+
+        --border: 200 6% 85%;
+        --input: 200 6% 85%;
+        --ring: 45 100% 59%;
+
+        --radius: 0.75rem;
+
+        --gradient-primary: linear-gradient(135deg, hsl(265 55% 24%) 0%, hsl(265 55% 32%) 100%);
+        --gradient-accent: linear-gradient(135deg, hsl(45 100% 59%) 0%, hsl(45 100% 65%) 100%);
+        --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+
+        --shadow-sm: 0 1px 2px 0 hsl(265 55% 24% / 0.05);
+        --shadow-md: 0 4px 6px -1px hsl(265 55% 24% / 0.1), 0 2px 4px -1px hsl(265 55% 24% / 0.06);
+        --shadow-lg: 0 10px 15px -3px hsl(265 55% 24% / 0.1), 0 4px 6px -2px hsl(265 55% 24% / 0.05);
+        --shadow-xl: 0 20px 25px -5px hsl(265 55% 24% / 0.1), 0 10px 10px -5px hsl(265 55% 24% / 0.04);
+
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .bg-gradient-subtle {
+        background-image: var(--gradient-subtle);
+    }
+    .bg-gradient-primary {
+        background-image: var(--gradient-primary);
+    }
+    .bg-gradient-accent {
+        background-image: var(--gradient-accent);
+    }
+    .shadow-card {
+        box-shadow: var(--shadow-lg);
+    }
+    .shadow-card-sm {
+        box-shadow: var(--shadow-sm);
+    }
+    .shadow-card-xl {
+        box-shadow: var(--shadow-xl);
+    }
+    .transition-smooth {
+        transition: var(--transition-smooth);
+    }
+    </style>
+    <script src="https://unpkg.com/htmx.org"></script>
+    <script>
+    // Passa CSRF nos requests HTMX quando forem POST (se você usar HTMX para POST futuramente)
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+        if (m) event.detail.headers['X-CSRFToken'] = m.pop();
+    });
+    </script>
+    {% block head %}
+    {% endblock %}
+</head>
+<body class="min-h-screen bg-background text-foreground font-sans">
+
+     {% include 'navbar.html' %}
+
+     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+     <script src="{% static 'js/currency-input.js' %}"></script>
+    {% block content %}
+
+    <!-- Container para notificações -->
+    <div id="notificacao-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
+    {% endblock %}
+
+<script>
+function mostrarNotificacao(mensagem, tipo = 'info') {
+    let container = document.getElementById("notificacao-container");
+
+    // Verifica se o container existe, caso contrário, cria um novo
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "notificacao-container";
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        `;
+        document.body.appendChild(container);
+    }
+
+    const classes = (tipo || 'info').toLowerCase();
+    let background = '#2563eb'; // info/default
+    if (classes.includes('success')) {
+        background = '#16a34a';
+    } else if (classes.includes('warning')) {
+        background = '#f59e0b';
+    } else if (classes.includes('error')) {
+        background = '#dc2626';
+    }
+
+    // Criar popup de notificação
+    const popup = document.createElement("div");
+    popup.innerText = mensagem;
+    popup.style.cssText = `
+        background-color: ${background};
+        color: white;
+        padding: 10px 20px;
+        margin: 5px;
+        border-radius: 5px;
+        font-size: 16px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 1;
+        transition: opacity 0.5s ease-out;
+        min-width: 250px;
+        text-align: center;
+    `;
+
+    container.appendChild(popup);
+
+    // Remover a notificação após 15 segundos
+    setTimeout(() => {
+        popup.style.opacity = "0";
+        setTimeout(() => {
+            if (popup.parentNode) {
+                container.removeChild(popup);
+            }
+        }, 500);
+    }, 15000);
+}
+</script>
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% for message in messages %}
+    mostrarNotificacao("{{ message|escapejs }}", "{{ message.tags|default:'info' }}");
+    {% endfor %}
+});
+</script>
+{% endif %}
+
+</body>
+
+</html>

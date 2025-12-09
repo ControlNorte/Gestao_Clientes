@@ -1,0 +1,219 @@
+{% load static %}
+
+{% with current_url=request.resolver_match.url_name %}
+<nav
+  class="sticky top-0 z-50 backdrop-blur bg-gradient-to-r from-[#311E5C]/95 via-[#311E5C]/90 to-[#311E5C]/95 border-b border-[#C9CBCC]/40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+      <div class="flex items-center gap-3">
+        {% load clientes_filters %}
+        <a href="{% if user.is_superuser or user|has_group:'Administrador' %}{% url 'clientes:dashboard' %}{% else %}{% url 'clientes:agendamentos' %}{% endif %}"
+          class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-[#FFC42E] rounded-md px-2 py-1 transition-all duration-300">
+          <div class="relative">
+            <div
+              class="absolute inset-0 bg-[#FFC42E]/20 blur-xl rounded-full group-hover:bg-[#FFC42E]/30 transition-all duration-300">
+            </div>
+            <span
+              class="relative text-xl font-semibold tracking-wide bg-gradient-to-r from-[#FFC42E] to-[#FFC42E]/80 bg-clip-text text-transparent group-hover:scale-105 inline-block transition-transform duration-300">
+              Gestão de Clientes
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2">
+        {% load clientes_filters %}
+
+        {% if user.is_superuser or user|has_group:"Administrador" %}
+        <a href="{% url 'clientes:client_list' %}"
+          class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 relative overflow-hidden group transition-all duration-300
+                  {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %} bg-[#FFC42E]/20 text-[#FFC42E] hover:bg-[#FFC42E]/30 {% else %} text-white/90 hover:text-white hover:bg-white/10 {% endif %}">
+          <div class="absolute inset-0 bg-[#FFC42E]/10 animate-pulse"></div>
+          <ion-icon name="people-circle-outline" class="text-lg"></ion-icon>
+          <span>Clientes</span>
+          <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FFC42E]"></div>
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center gap-3">
+        {% if user.is_authenticated %}
+        <div class="relative hidden sm:flex items-center">
+          <button id="profile-menu-button" type="button"
+            class="flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-[#FFC42E]/80">
+            <span class="grid place-items-center h-7 w-7 rounded-full bg-[#FFC42E] text-[#311E5C]">
+              <ion-icon name="person" class="text-base"></ionicon>
+            </span>
+            <span class="text-sm font-medium max-w-[8rem] truncate">{{ user.first_name|default:user.username }}</span>
+            <ion-icon name="chevron-down-outline" class="text-sm opacity-70 transition-transform"
+              id="profile-menu-icon"></ionicon>
+          </button>
+
+          <div id="profile-menu-panel"
+            class="absolute right-0 top-full z-40 mt-2 hidden w-64 rounded-2xl border border-[#C9CBCC]/60 bg-white text-[#311E5C] shadow-card">
+            <div class="space-y-1 border-b border-[#C9CBCC]/40 px-5 py-4">
+              <p class="text-sm font-semibold">{{ user.get_full_name|default:user.username }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ user.email|default:"Sem e-mail cadastrado" }}</p>
+              <p class="text-xs text-[#FFC42E] font-medium mt-1">
+                {% if user.is_superuser %} Superusuário
+                {% elif user|has_group:"Administrador" %} Administrador
+                {% elif user|has_group:"Agendamento" %} Agendamento
+                {% else %} Sem acesso definido {% endif %}
+              </p>
+            </div>
+            <div class="px-5 py-4">
+              <form action="{% url 'admin:logout' %}" method="post" class="w-full">
+                {% csrf_token %}
+                <button type="submit"
+                  class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#311E5C] px-4 py-2 text-sm font-semibold text-white shadow-card transition-smooth hover:bg-[#24134A] focus:outline-none focus:ring-2 focus:ring-[#FFC42E]/70">
+                  <ion-icon name="log-out-outline" class="text-base"></ionicon>
+                    Sair
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <a href="{% url 'admin:login' %}"
+          class="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition-colors hover:text-[#FFC42E] hover:border-[#FFC42E] focus:outline-none focus:ring-2 focus:ring-[#FFC42E]/60">
+          <ion-icon name="log-in-outline"></ionicon>
+            Entrar
+        </a>
+        {% endif %}
+
+        <button id="mobile-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu"
+          class="md:hidden inline-flex items-center justify-center rounded-md p-2 text-white hover:text-[#FFC42E] hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FFC42E]">
+          <span class="sr-only">Abrir menu</span>
+          <ion-icon id="icon-open" name="menu" class="text-2xl"></ionicon>
+            <ion-icon id="icon-close" name="close" class="text-2xl hidden"></ionicon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="md:hidden hidden border-t border-[#C9CBCC]/30 bg-[#311E5C]/90 backdrop-blur">
+    <div class="px-4 py-3 space-y-1">
+      {% if user.is_superuser or user|has_group:"Administrador" %}
+      <a href="{% url 'clientes:client_list' %}"
+        class="block px-3 py-2 rounded-md text-base font-medium transition-colors
+                {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %} bg-[#FFC42E]/20 text-[#FFC42E] hover:bg-[#FFC42E]/30 {% else %} text-white/90 hover:text-white hover:bg-white/10 {% endif %}">
+        <span class="inline-flex items-center gap-2"><ion-icon name="people-circle-outline"></ionicon> Clientes</span>
+      </a>
+      {% endif %}
+
+      <a href="{% url 'clientes:agendamentos' %}"
+        class="block px-3 py-2 rounded-md text-base font-medium transition-colors
+                {% if current_url == 'agendamentos' %} bg-[#FFC42E]/20 text-[#FFC42E] hover:bg-[#FFC42E]/30 {% else %} text-white/90 hover:text-white hover:bg-white/10 {% endif %}">
+        <span class="inline-flex items-center gap-2"><ion-icon name="calendar-outline"></ionicon> Agendamentos</span>
+      </a>
+
+      <a href="{% url 'clientes:reunioes_lista' %}"
+        class="block px-3 py-2 rounded-md text-base font-medium transition-colors
+              {% if current_url == 'reunioes_lista' %} bg-[#FFC42E]/20 text-[#FFC42E] hover:bg-[#FFC42E]/30 {% else %} text-white/90 hover:text-white hover:bg-white/10 {% endif %}">
+        <span class="inline-flex items-center gap-2"><ion-icon name="briefcase-outline"></ionicon> Reuniões</span>
+      </a>
+
+      {% if user.is_superuser or user|has_group:"Administrador" %}
+      <a href="{% url 'clientes:financeiro' %}"
+        class="block px-3 py-2 rounded-md text-base font-medium transition-colors
+                {% if current_url == 'financeiro' %} bg-[#FFC42E]/20 text-[#FFC42E] hover:bg-[#FFC42E]/30 {% else %} text-white/90 hover:text-white hover:bg-white/10 {% endif %}">
+        <span class="inline-flex items-center gap-2"><ion-icon name="cash-outline"></ionicon> Financeiro</span>
+      </a>
+      <a href="{% url 'clientes:usuarios' %}"
+        class="block px-3 py-2 rounded-md text-base font-medium transition-colors
+                {% if current_url == 'usuarios' %} bg-[#FFC42E]/20 text-[#FFC42E] hover:bg-[#FFC42E]/30 {% else %} text-white/90 hover:text-white hover:bg-white/10 {% endif %}">
+        <span class="inline-flex items-center gap-2"><ion-icon name="people-outline"></ionicon> Usuários</span>
+      </a>
+      {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="border-t border-[#C9CBCC]/30 pt-3 mt-2 space-y-3">
+      <div class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-white">
+        <span class="grid place-items-center h-8 w-8 rounded-full bg-[#FFC42E] text-[#311E5C]">
+          <ion-icon name="person"></ionicon>
+        </span>
+        <div class="flex flex-col">
+          <span>{{ user.get_full_name|default:user.username }}</span>
+          <span class="text-xs text-white/70">{{ user.email|default:"Sem e-mail cadastrado" }}</span>
+        </div>
+      </div>
+      <div class="px-3 pb-3">
+        <form action="{% url 'admin:logout' %}" method="post" class="w-full">
+          {% csrf_token %}
+          <button type="submit"
+            class="flex w-full items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white transition-smooth hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-[#FFC42E]/70">
+            <ion-icon name="log-out-outline" class="text-lg"></ionicon>
+              Sair
+          </button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="border-t border-[#C9CBCC]/30 px-4 py-4">
+      <a href="{% url 'admin:login' %}"
+        class="flex w-full items-center justify-center gap-2 rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white transition-smooth hover:text-[#FFC42E] hover:border-[#FFC42E] focus:outline-none focus:ring-2 focus:ring-[#FFC42E]/60">
+        <ion-icon name="log-in-outline"></ionicon>
+          Entrar
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+
+<script>
+  (function () {
+    const btn = document.getElementById('mobile-menu-button');
+    if (!btn) return;
+    const menu = document.getElementById('mobile-menu');
+    const iconOpen = document.getElementById('icon-open');
+    const iconClose = document.getElementById('icon-close');
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      menu.classList.toggle('hidden');
+      iconOpen.classList.toggle('hidden');
+      iconClose.classList.toggle('hidden');
+    });
+  })();
+
+  (function () {
+    const trigger = document.getElementById('profile-menu-button');
+    const panel = document.getElementById('profile-menu-panel');
+    const icon = document.getElementById('profile-menu-icon');
+    if (!trigger || !panel) return;
+
+    const togglePanel = () => {
+      const isOpen = !panel.classList.contains('hidden');
+      panel.classList.toggle('hidden');
+      if (icon) {
+        icon.classList.toggle('rotate-180', !isOpen);
+      }
+    };
+
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      togglePanel();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (panel.classList.contains('hidden')) return;
+      if (!panel.contains(event.target) && !trigger.contains(event.target)) {
+        panel.classList.add('hidden');
+        if (icon) {
+          icon.classList.remove('rotate-180');
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !panel.classList.contains('hidden')) {
+        panel.classList.add('hidden');
+        if (icon) {
+          icon.classList.remove('rotate-180');
+        }
+      }
+    });
+  })();
+</script>
+{% endwith %}

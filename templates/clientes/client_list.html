@@ -1,0 +1,592 @@
+{% extends "base.html" %}
+{% load clientes_filters %}
+
+{% block title %}Clientes · Gestão de Clientes{% endblock %}
+
+{% block head %}
+<style>
+  .filter-field {
+    position: relative;
+  }
+
+  .filter-input-wrapper {
+    position: relative;
+  }
+
+  .filter-field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b3e96;
+    margin-bottom: 0.35rem;
+  }
+
+  .filter-input {
+    width: 100%;
+    border: 1px solid #dcd7f7;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #311e5c;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(49, 30, 92, 0.08);
+    padding-right: 2.75rem;
+  }
+
+  .filter-input:focus {
+    outline: none;
+    border-color: #7a5df0;
+    box-shadow: 0 0 0 3px rgba(122, 93, 240, 0.18);
+  }
+
+  .filter-input::placeholder {
+    color: #b5b1d4;
+  }
+
+  .filter-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg fill='%235b3e96' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2.4rem center;
+    background-size: 0.9rem;
+    padding-right: 4rem;
+  }
+
+  .filter-input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  .filter-input[type="number"]::-webkit-inner-spin-button,
+  .filter-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .filter-clear {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #7a5df0;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .filter-clear.is-visible {
+    opacity: 0.8;
+    pointer-events: auto;
+  }
+
+  .filter-clear:hover {
+    opacity: 1;
+  }
+
+  .filter-actions button,
+  .filter-actions a {
+    border-radius: 999px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header Section -->
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+      <h1 class="text-2xl md:text-3xl font-semibold text-[#311E5C]">Clientes</h1>
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="{% url 'clientes:responsaveis' %}"
+          class="inline-flex items-center gap-2 text-sm font-medium text-[#311E5C] hover:text-[#311E5C] px-3 py-2 rounded-lg border border-[#C9CBCC] bg-white shadow-sm hover:shadow transition">
+          <ion-icon name="ellipsis-vertical-sharp" class="text-base"></ion-icon>
+          <span>Mais opções</span>
+        </a>
+      </div>
+      <a href="{% url 'clientes:client_import' %}"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium hover:bg-white/20 backdrop-blur-sm transition-colors border border-white/10">
+        <ion-icon name="cloud-upload-outline" class="text-xl"></ion-icon>
+        Importar
+      </a>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="border-b border-[#C9CBCC]/60 mb-8">
+      <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+        <li>
+          <a href="{% url 'clientes:dashboard' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'dashboard' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:client_list' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Clientes
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:reunioes_lista' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'reunioes_lista' or current_url == 'reuniao_preferencias' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Reuniões
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:agendamentos' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'agendamentos' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Agendamentos
+          </a>
+        </li>
+      </ul>
+    </nav>
+    {% endwith %}
+
+    <!-- Filters Section -->
+    <div class="bg-white/95 rounded-3xl shadow-card-sm border border-[#E6E7F5] p-6 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-[#311E5C]">Filtros de Busca</h2>
+          <p class="text-sm text-gray-500">Refine os resultados utilizando os campos abaixo.</p>
+        </div>
+      </div>
+      <form class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end" method="get">
+        <div class="filter-field md:col-span-4">
+          <label for="nome">CLIENTE</label>
+          <div class="filter-input-wrapper">
+            <input type="text" id="nome" class="filter-input" placeholder="Digite o nome" name="nome"
+              value="{{ filters.nome }}" data-filter-nome>
+            <button type="button" class="filter-clear" aria-label="Limpar cliente" data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-4">
+          <label for="responsavel">RESPONSÁVEL</label>
+          <div class="filter-input-wrapper">
+            <select id="responsavel" class="filter-input filter-select" name="responsavel">
+              <option value="">Todos</option>
+              {% for responsavel in responsaveis %}
+              <option value="{{ responsavel }}">
+                {{ responsavel }}</option>
+              {% endfor %}
+            </select>
+            <button type="button" class="filter-clear" aria-label="Limpar responsável"
+              data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-2">
+          <label for="status">STATUS</label>
+          <div class="filter-input-wrapper">
+            <select id="status" class="filter-input filter-select" name="status">
+              <option value="">Todos</option>
+              <option value="ATIVO">Ativo</option>
+              <option value="INATIVO">Inativo</option>
+            </select>
+            <button type="button" class="filter-clear" aria-label="Limpar status" data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-2">
+          <label for="termometro">TERMÔMETRO</label>
+          <div class="filter-input-wrapper">
+            <select id="termometro" class="filter-input filter-select" name="termometro">
+              <option value="">Todos</option>
+              {% for num in "12345" %}
+              <option value="{{ num }}">{{ num }} ⭐</option>
+              {% endfor %}
+            </select>
+            <button type="button" class="filter-clear" aria-label="Limpar termômetro" data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-2">
+          <label for="data_tipo">TIPO DE DATA</label>
+          <div class="filter-input-wrapper">
+            <select id="data_tipo" class="filter-input filter-select" name="data_tipo">
+              <option value="">Entrada e saída</option>
+              <option value="entrada">Data de entrada</option>
+              <option value="saida">Data de saída</option>
+            </select>
+            <button type="button" class="filter-clear" aria-label="Limpar tipo de data"
+              data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-3">
+          <label for="data_inicio">DATA INICIAL</label>
+          <div class="filter-input-wrapper">
+            <input type="date" id="data_inicio" class="filter-input" placeholder="dd/mm/aaaa" name="data_inicio"
+              value="{{ filters.data_inicio }}">
+            <button type="button" class="filter-clear" aria-label="Limpar data inicial"
+              data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-3">
+          <label for="data_fim">DATA FINAL</label>
+          <div class="filter-input-wrapper">
+            <input type="date" id="data_fim" class="filter-input" placeholder="dd/mm/aaaa" name="data_fim"
+              value="{{ filters.data_fim }}">
+            <button type="button" class="filter-clear" aria-label="Limpar data final" data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-2">
+          <label for="valor_min">VALOR INICIAL</label>
+          <div class="filter-input-wrapper">
+            <input type="number" step="0.01" min="0" inputmode="decimal" id="valor_min" class="filter-input"
+              name="valor_min" value="{{ filters.valor_min }}" placeholder="0,00">
+            <button type="button" class="filter-clear" aria-label="Limpar valor inicial"
+              data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-2">
+          <label for="valor_max">VALOR FINAL</label>
+          <div class="filter-input-wrapper">
+            <input type="number" step="0.01" min="0" inputmode="decimal" id="valor_max" class="filter-input"
+              name="valor_max" value="{{ filters.valor_max }}" placeholder="0,00">
+            <button type="button" class="filter-clear" aria-label="Limpar valor final"
+              data-clear-button>&times;</button>
+          </div>
+        </div>
+        <div class="filter-field md:col-span-12 filter-actions flex flex-wrap gap-3 items-center pt-2">
+          <button type="submit"
+            class="inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-[#311E5C] text-white text-sm font-semibold hover:bg-[#241249] transition-colors shadow-sm">
+            <ion-icon name="filter" class="text-base"></ion-icon>
+            Aplicar filtros
+          </button>
+          <a href="{{ export_url }}"
+            class="inline-flex justify-center items-center px-6 py-2.5 border border-[#311E5C] text-[#311E5C] text-sm font-semibold bg-white hover:bg-[#F6F3FF] transition-colors">
+            Exportar Excel
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left" data-client-table>
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="nome" data-sort-type="text">
+                  <span>Cliente</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="termometro" data-sort-type="number">
+                  <span>Termômetro</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="responsavel" data-sort-type="text">
+                  <span>Responsável</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="status" data-sort-type="text">
+                  <span>Status</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="entrada" data-sort-type="date">
+                  <span>Entrada</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="saida" data-sort-type="date">
+                  <span>Saída</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">
+                <button type="button"
+                  class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                  data-sort-key="valor" data-sort-type="currency">
+                  <span>Valor</span>
+                  <span class="sort-indicator text-gray-400 text-xs" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th class="px-6 py-3 font-semibold">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for client in clients %}
+            <tr class="bg-white hover:bg-gray-50 transition-colors" data-client-row>
+              <td class="px-6 py-4 font-medium text-gray-900" data-cell="nome">
+                <a href="{% url 'clientes:client_update' client.pk %}" class="text-[#311E5C] hover:underline">
+                  {{ client.nome }}
+                </a>
+              </td>
+              <td class="px-6 py-4 text-gray-600" data-cell="termometro" data-sort-value="{{ client.termometro }}">
+                {{ client.termometro }} ⭐</td>
+              <td class="px-6 py-4 text-gray-600" data-cell="responsavel">{{ client.responsavel }}</td>
+              <td class="px-6 py-4" data-cell="status" data-sort-value="{{ client.status }}">
+                {% if client.status == "ATIVO" %}
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">ATIVO</span>
+                {% else %}
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">INATIVO</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 text-gray-600" data-cell="entrada"
+                data-sort-value="{{ client.entrada|date:'Y-m-d' }}">{{ client.entrada|date:"d/m/Y" }}</td>
+              <td class="px-6 py-4 text-gray-600" data-cell="saida"
+                data-sort-value="{% if client.saida %}{{ client.saida|date:'Y-m-d' }}{% endif %}">
+                {% if client.saida %}
+                {{ client.saida|date:"d/m/Y" }}
+                {% else %}
+                —
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 text-gray-900 font-semibold" data-cell="valor"
+                data-sort-value="{{ client.valor|default_if_none:0 }}">{{ client.valor|currency }}</td>
+              <td class="px-6 py-4">
+                <button type="button"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#311E5C] bg-[#311E5C]/5 hover:bg-[#311E5C]/10 rounded-lg transition-colors"
+                  data-bs-toggle="modal" data-bs-target="#clientActionsModal"
+                  data-transfer-url="{% url 'clientes:client_transfer' client.pk %}"
+                  data-exit-url="{% url 'clientes:client_exit' client.pk %}"
+                  data-termometro-url="{% url 'clientes:client_termometro' client.pk %}"
+                  data-valor-url="{% url 'clientes:client_value' client.pk %}"
+                  data-preferencias-url="{% url 'clientes:reuniao_preferencias' client.pk %}"
+                  data-delete-url="{% url 'clientes:client_delete' client.pk %}" data-client-name="{{ client.nome }}">
+                  <ion-icon name="pencil" class="text-base"></ion-icon>
+                  Ações
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="px-6 py-10 text-center text-gray-500">Nenhum cliente encontrado.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal de ações -->
+    <div class="modal fade" id="clientActionsModal" tabindex="-1" aria-labelledby="clientActionsLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-xl rounded-2xl">
+          <div class="modal-header border-b border-gray-100 px-6 py-4">
+            <h5 class="modal-title text-lg font-semibold text-gray-900" id="clientActionsLabel">Ações para <span
+                id="modalClientName" class="text-[#311E5C]"></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body px-6 py-6">
+            <div class="flex flex-col gap-3">
+              <a class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
+                id="modalTransferLink" href="#">
+                <ion-icon name="swap-horizontal-outline" class="text-lg"></ion-icon>
+                Transferir
+              </a>
+              <a class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors"
+                id="modalExitLink" href="#">
+                <ion-icon name="log-out-outline" class="text-lg"></ion-icon>
+                Registrar saída
+              </a>
+              <a class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors"
+                id="modalTermometroLink" href="#">
+                <ion-icon name="thermometer-outline" class="text-lg"></ion-icon>
+                Alterar termômetro
+              </a>
+              <a class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors"
+                id="modalValueLink" href="#">
+                <ion-icon name="cash-outline" class="text-lg"></ion-icon>
+                Alterar valor
+              </a>
+              <a class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition-colors"
+                id="modalMeetingLink" href="#">
+                <ion-icon name="calendar-outline" class="text-lg"></ion-icon>
+                Preferências de reunião
+              </a>
+              <form method="post" id="modalDeleteForm" class="mt-2">
+                {% csrf_token %}
+                <button type="submit"
+                  class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
+                  onclick="return confirm('Remover cliente?');">
+                  <ion-icon name="trash-outline" class="text-lg"></ion-icon>
+                  Excluir
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.filter-input-wrapper').forEach((wrapper) => {
+      const field = wrapper.querySelector('.filter-input');
+      const clearButton = wrapper.querySelector('[data-clear-button]');
+      if (!field || !clearButton) {
+        return;
+      }
+
+      const updateClearVisibility = () => {
+        const rawValue = field.value || "";
+        const hasValue = field.tagName === 'SELECT' ? rawValue !== "" : rawValue.trim() !== "";
+        clearButton.classList.toggle('is-visible', hasValue);
+      };
+
+      clearButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (field.tagName === 'SELECT') {
+          field.value = "";
+          field.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          field.value = "";
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+          field.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        updateClearVisibility();
+      });
+
+      field.addEventListener('input', updateClearVisibility);
+      field.addEventListener('change', updateClearVisibility);
+      updateClearVisibility();
+    });
+
+    const clientTable = document.querySelector('[data-client-table]');
+    const nameFilter = document.querySelector('[data-filter-nome]');
+    if (clientTable) {
+      const tbody = clientTable.querySelector('tbody');
+      const tableRows = Array.from(tbody.querySelectorAll('tr[data-client-row]'));
+      const sortButtons = clientTable.querySelectorAll('[data-sort-key]');
+
+      const normalizeText = (value) => {
+        return (value || "")
+          .toString()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+      };
+
+      const filterRows = () => {
+        const term = normalizeText(nameFilter ? nameFilter.value : "");
+        tableRows.forEach((row) => {
+          const nameCell = row.querySelector('[data-cell="nome"]');
+          const rowName = normalizeText(nameCell ? nameCell.textContent : "");
+          row.style.display = term === "" || rowName.includes(term) ? "" : "none";
+        });
+      };
+
+      nameFilter?.addEventListener('input', filterRows);
+      filterRows();
+
+      const getCellValue = (row, key, type) => {
+        const cell = row.querySelector(`[data-cell="${key}"]`);
+        const raw = (cell?.getAttribute('data-sort-value') || cell?.textContent || "").trim();
+        if (type === 'number') {
+          const value = parseFloat(raw.replace(/[^0-9.-]/g, ''));
+          return Number.isNaN(value) ? 0 : value;
+        }
+        if (type === 'currency') {
+          if (raw.includes(',')) {
+            const localized = raw.replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.');
+            const value = parseFloat(localized);
+            return Number.isNaN(value) ? 0 : value;
+          }
+          const numeric = parseFloat(raw.replace(/[^0-9.-]/g, ''));
+          return Number.isNaN(numeric) ? 0 : numeric;
+        }
+        if (type === 'date') {
+          if (!raw) return 0;
+          const date = new Date(raw);
+          if (!Number.isNaN(date.getTime())) {
+            return date.getTime();
+          }
+          const [dia, mes, ano] = raw.split('/');
+          if (!dia || !mes || !ano) return 0;
+          return new Date(parseInt(ano, 10), parseInt(mes, 10) - 1, parseInt(dia, 10)).getTime();
+        }
+        return normalizeText(raw);
+      };
+
+      const resetIndicators = () => {
+        sortButtons.forEach((btn) => {
+          btn.removeAttribute('data-direction');
+          const indicator = btn.querySelector('.sort-indicator');
+          if (indicator) indicator.textContent = '↕';
+        });
+      };
+
+      sortButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.getAttribute('data-sort-key');
+          const type = button.getAttribute('data-sort-type') || 'text';
+          const currentDirection = button.getAttribute('data-direction');
+          const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+
+          resetIndicators();
+          button.setAttribute('data-direction', nextDirection);
+          const indicator = button.querySelector('.sort-indicator');
+          if (indicator) indicator.textContent = nextDirection === 'asc' ? '▲' : '▼';
+
+          const sorted = [...tableRows].sort((a, b) => {
+            const aValue = getCellValue(a, key, type);
+            const bValue = getCellValue(b, key, type);
+            if (aValue === bValue) return 0;
+            if (aValue > bValue) return nextDirection === 'asc' ? 1 : -1;
+            return nextDirection === 'asc' ? -1 : 1;
+          });
+
+          sorted.forEach((row) => tbody.appendChild(row));
+          filterRows();
+        });
+      });
+    }
+
+    const modalElement = document.getElementById("clientActionsModal");
+    if (!modalElement) return;
+
+    modalElement.addEventListener("show.bs.modal", function (event) {
+      const button = event.relatedTarget;
+      if (!button) return;
+
+      const clientName = button.getAttribute("data-client-name") || "";
+      const transferUrl = button.getAttribute("data-transfer-url");
+      const exitUrl = button.getAttribute("data-exit-url");
+      const termometroUrl = button.getAttribute("data-termometro-url");
+      const valorUrl = button.getAttribute("data-valor-url");
+      const meetingUrl = button.getAttribute("data-preferencias-url");
+      const deleteUrl = button.getAttribute("data-delete-url");
+
+      document.getElementById("modalClientName").textContent = clientName;
+      document.getElementById("modalTransferLink").setAttribute("href", transferUrl);
+      document.getElementById("modalExitLink").setAttribute("href", exitUrl);
+      document.getElementById("modalTermometroLink").setAttribute("href", termometroUrl);
+      document.getElementById("modalValueLink").setAttribute("href", valorUrl);
+      document.getElementById("modalMeetingLink").setAttribute("href", meetingUrl);
+      document.getElementById("modalDeleteForm").setAttribute("action", deleteUrl);
+    });
+  });
+</script>
+{% endblock %}

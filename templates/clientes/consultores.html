@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Consultores{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+    <div class="flex flex-wrap items-center gap-4 mb-4">
+      <a href="{% url 'clientes:client_list' %}"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#D0D5DD] bg-white text-[#311E5C] shadow-sm hover:border-[#FFC42E] hover:bg-[#FFF4DB]/50 focus:outline-none focus:ring-4 focus:ring-[#FFC42E]/30 transition">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+        <span class="sr-only">Voltar</span>
+      </a>
+      <h1 class="text-2xl md:text-3xl font-semibold text-[#311E5C]">Gestão de Consultores</h1>
+    </div>
+
+    <nav class="border-b border-[#C9CBCC]/60 mb-4">
+      <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+        <li>
+          <a href="{% url 'clientes:responsaveis' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'responsaveis' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Responsáveis
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:consultores' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'consultores' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Consultores
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:motivos_razoes' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'motivos_razoes' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Motivos
+          </a>
+        </li>
+      </ul>
+    </nav>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div class="p-6 border-b border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-900">Novo consultor</h2>
+          <p class="text-sm text-gray-500">Preencha os campos e confirme para adicionar à lista.</p>
+        </div>
+        <div class="p-6">
+          <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button
+              class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-[#311E5C] rounded-xl shadow-sm hover:bg-[#271547] transition"
+              type="submit">Adicionar</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Consultores cadastrados</h2>
+            <p class="text-sm text-gray-500">Edite dados ou remova registros obsoletos.</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-100 text-sm">
+            <thead class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+              <tr>
+                <th class="px-6 py-3 text-left">Nome</th>
+                <th class="px-6 py-3 text-left">Email</th>
+                <th class="px-6 py-3 text-left">Status</th>
+                <th class="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for consultor in consultores %}
+              <tr class="bg-white hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 font-medium text-gray-900">{{ consultor.nome }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ consultor.email|default:"—" }}</td>
+                <td class="px-6 py-4">
+                  {% if consultor.ativo %}
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">Ativo</span>
+                  {% else %}
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Inativo</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex flex-wrap justify-end gap-2">
+                    <button type="button"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-[#311E5C] border border-[#311E5C]/30 rounded-lg hover:bg-[#311E5C]/5 transition"
+                      data-bs-toggle="modal" data-bs-target="#editConsultorModal" data-id="{{ consultor.pk }}"
+                      data-nome="{{ consultor.nome }}" data-email="{{ consultor.email }}"
+                      data-ativo='{{ consultor.ativo|yesno:"true,false" }}'>
+                      Editar
+                    </button>
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="remover" value="{{ consultor.pk }}">
+                      <button
+                        class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition"
+                        onclick="return confirm('Remover consultor?');">Remover</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">Nenhum consultor cadastrado.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endwith %}
+
+<!-- Modal de edição -->
+<div class="modal fade" id="editConsultorModal" tabindex="-1" aria-labelledby="editConsultorLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editConsultorLabel">Editar consultor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" name="editar" id="editConsultorId">
+          <div class="mb-3">
+            <label class="form-label" for="editConsultorNome">Nome</label>
+            <input type="text" class="form-control" id="editConsultorNome" name="nome" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="editConsultorEmail">Email</label>
+            <input type="email" class="form-control" id="editConsultorEmail" name="email">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="editConsultorAtivo">Status</label>
+            <select class="form-select" id="editConsultorAtivo" name="ativo">
+              <option value="True">Ativo</option>
+              <option value="False">Inativo</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var modal = document.getElementById("editConsultorModal");
+    if (!modal) return;
+    modal.addEventListener("show.bs.modal", function (event) {
+      var button = event.relatedTarget;
+      if (!button) return;
+      document.getElementById("editConsultorId").value = button.getAttribute("data-id");
+      document.getElementById("editConsultorNome").value = button.getAttribute("data-nome") || "";
+      document.getElementById("editConsultorEmail").value = button.getAttribute("data-email") || "";
+      var ativo = button.getAttribute("data-ativo") === "true" ? "True" : "False";
+      document.getElementById("editConsultorAtivo").value = ativo;
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Remover {{ client.nome }}{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <section
+      class="relative overflow-hidden rounded-3xl bg-[#311E5C] text-white shadow-xl mb-8 transition-all hover:shadow-2xl">
+      <div class="absolute inset-0 bg-gradient-to-r from-red-500/30 to-transparent"></div>
+      <div class="relative px-8 py-10">
+        <p class="text-sm uppercase tracking-widest text-white/70 mb-2">Clientes</p>
+        <h1 class="text-3xl font-bold mb-3">Remover cliente</h1>
+        <p class="text-white/80">Confirme a exclusão definitiva de {{ client.nome }}.</p>
+      </div>
+    </section>
+
+    <nav class="border-b border-[#C9CBCC]/60 mb-8">
+      <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+        <li>
+          <a href="{% url 'clientes:dashboard' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'dashboard' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:client_list' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Clientes
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:reunioes_lista' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'reunioes_lista' or current_url == 'reuniao_preferencias' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Reuniões
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:agendamentos' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'agendamentos' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Agendamentos
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm">
+      <div class="p-6">
+        <div class="flex items-start gap-4">
+          <div class="p-3 rounded-2xl bg-red-50 text-red-600">
+            <ion-icon name="warning-outline" class="text-2xl"></ion-icon>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Deseja remover {{ client.nome }}?</h2>
+            <p class="text-gray-600 mb-4">Esta ação é permanente e removerá todo o histórico vinculado ao cliente.</p>
+            <form method="post" class="flex flex-col sm:flex-row gap-3">
+              {% csrf_token %}
+              <a class="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
+                href="{% url 'clientes:client_list' %}">Cancelar</a>
+              <button type="submit"
+                class="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl shadow-sm hover:bg-red-700 transition">
+                Remover definitivamente
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endwith %}
+{% endblock %}

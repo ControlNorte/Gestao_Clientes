@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load clientes_filters %}
+
+{% block title %}Dashboard · Gestão de Clientes{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <style>
+    .dashboard-table-container {
+      position: relative;
+    }
+
+    .dashboard-table thead th {
+      position: sticky;
+      top: 0;
+      background-color: #f8fafc;
+      z-index: 10;
+    }
+
+    .dashboard-table thead th.sticky-col {
+      left: 0;
+      z-index: 20;
+    }
+
+    .dashboard-table tbody td.sticky-col,
+    .dashboard-table tbody th.sticky-col {
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      background-color: inherit;
+    }
+
+    .dashboard-table tbody tr:hover td,
+    .dashboard-table tbody tr:hover th {
+      background-color: #f1f5f9;
+    }
+
+    .dashboard-table tbody tr:hover td.sticky-col,
+    .dashboard-table tbody tr:hover th.sticky-col {
+      background-color: #f1f5f9;
+    }
+  </style>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Hero Section -->
+    <section
+      class="relative overflow-hidden rounded-3xl bg-[#311E5C] text-white shadow-xl mb-10 transition-all hover:shadow-2xl">
+      <!-- Decorative Background Elements -->
+      <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-[#FFC42E] opacity-10 blur-3xl rounded-full"></div>
+      <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-[#7c3aed] opacity-20 blur-3xl rounded-full"></div>
+
+      <div class="relative px-8 py-10 md:flex md:items-center md:justify-between">
+        <div class="mb-6 md:mb-0">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-2">Gestão de Clientes</h1>
+          <p class="text-white/80 text-lg">Visão consolidada dos seus indicadores e performance.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a href="{% url 'clientes:client_create' %}"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FFC42E] text-[#311E5C] font-bold hover:bg-[#e5b029] transition-colors shadow-lg shadow-[#FFC42E]/20">
+            <ion-icon name="add-outline" class="text-xl"></ion-icon>
+            Novo Cliente
+          </a>
+          <form method="post" action="{% url 'clientes:clear_database' %}"
+            onsubmit="return confirm('ATENÇÃO: Esta ação apagará TODOS os dados do sistema. Tem certeza absoluta?');"
+            class="inline-flex">
+            {% csrf_token %}
+            <button type="submit"
+              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 backdrop-blur-sm transition-colors border border-white/10">
+              <ion-icon name="trash-outline" class="text-xl"></ion-icon>
+              Limpar Dados
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="mb-8">
+      <nav class="border-b border-[#C9CBCC]/60 mb-8">
+        <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+          <li>
+            <a href="{% url 'clientes:dashboard' %}"
+              class="inline-block px-3 py-2 {% if current_url == 'dashboard' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'clientes:client_list' %}"
+              class="inline-block px-3 py-2 {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+              Clientes
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'clientes:reunioes_lista' %}"
+              class="inline-block px-3 py-2 {% if current_url == 'reunioes_lista' or current_url == 'reuniao_preferencias' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+              Reuniões
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'clientes:agendamentos' %}"
+              class="inline-block px-3 py-2 {% if current_url == 'agendamentos' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+              Agendamentos
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <!-- Card: Ativos -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+        <div class="flex items-center justify-between mb-4">
+          <div class="p-3 rounded-xl bg-green-50 text-green-600 group-hover:bg-green-100 transition-colors">
+            <ion-icon name="people" class="text-2xl"></ion-icon>
+          </div>
+          <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+            Total: {{stats.total}}
+          </span>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Clientes Ativos</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.ativos }}</p>
+      </div>
+
+      <!-- Card: Inativos -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+        <div class="flex items-center justify-between mb-4">
+          <div class="p-3 rounded-xl bg-red-50 text-red-600 group-hover:bg-red-100 transition-colors">
+            <ion-icon name="person-remove" class="text-2xl"></ion-icon>
+          </div>
+          <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-50 text-red-600">Churn</span>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Clientes Inativos</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.inativos }}</p>
+      </div>
+
+      <!-- Card: Receita -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+        <div class="flex items-center justify-between mb-4">
+          <div class="p-3 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
+            <ion-icon name="wallet" class="text-2xl"></ion-icon>
+          </div>
+          <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600">Mensal</span>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Receita Ativa</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.receita_ativa|currency }}</p>
+      </div>
+
+      <!-- Card: Operadores -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+        <div class="flex items-center justify-between mb-4">
+          <div class="p-3 rounded-xl bg-purple-50 text-purple-600 group-hover:bg-purple-100 transition-colors">
+            <ion-icon name="briefcase" class="text-2xl"></ion-icon>
+          </div>
+          <a href="{% url 'clientes:responsaveis' %}"
+            class="text-xs font-medium text-purple-600 hover:text-purple-800">Gerenciar &rarr;</a>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Operadores</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.responsaveis }}</p>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Filtros de Período</h2>
+          <p class="text-sm text-gray-500">Selecione o intervalo para análise dos gráficos e relatórios.</p>
+        </div>
+      </div>
+      <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" method="get">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mês Inicial</label>
+          <input type="month"
+            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#311E5C] focus:ring focus:ring-[#311E5C]/20 sm:text-sm"
+            name="mes_inicio" value="{{ month_filter.start }}">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mês Final</label>
+          <input type="month"
+            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#311E5C] focus:ring focus:ring-[#311E5C]/20 sm:text-sm"
+            name="mes_fim" value="{{ month_filter.end }}">
+        </div>
+        <div class="flex gap-2">
+          <button type="submit"
+            class="flex-1 inline-flex justify-center items-center gap-2 px-4 py-2 rounded-lg bg-[#311E5C] text-white text-sm font-medium hover:bg-[#2a194f] transition-colors shadow-sm">
+            <ion-icon name="filter" class="text-lg"></ion-icon>
+            Aplicar
+          </button>
+          <a href="{% url 'clientes:dashboard' %}"
+            class="inline-flex justify-center items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
+            Limpar
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Charts & Recent History Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+      <!-- Charts Column -->
+      <div class="lg:col-span-2 space-y-8">
+        {% if operator_chart_data %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-6">Performance por Operador (Qtd)</h3>
+          <div class="relative h-80 w-full">
+            <canvas id="operator-chart"></canvas>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if operator_value_chart_data %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-6">Performance por Operador (Valor)</h3>
+          <div class="relative h-80 w-full">
+            <canvas id="operator-value-chart"></canvas>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent History Column -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 h-full flex flex-col">
+          <div class="p-6 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">Histórico Recente</h3>
+          </div>
+          <div class="flex-1 overflow-y-auto p-0">
+            <ul class="divide-y divide-gray-100">
+              {% for evento in recentes %}
+              <li class="p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                  <div
+                    class="mt-1 p-2 rounded-full {% if evento.tipo == 'SAIDA' %}bg-red-50 text-red-600{% else %}bg-blue-50 text-blue-600{% endif %}">
+                    <ion-icon
+                      name="{% if evento.tipo == 'SAIDA' %}log-out-outline{% else %}swap-horizontal-outline{% endif %}"
+                      class="text-lg"></ion-icon>
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-gray-900">{{ evento.client.nome }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      {{ evento.get_tipo_display }} · {{ evento.descricao_alteracao|default:"-" }}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">
+                      {{ evento.data|date:"d/m/Y" }}
+                      · Motivo: {{ evento.motivo }}{% if evento.razao %} · Razão: {{ evento.razao }}{% endif %}
+                    </p>
+                  </div>
+                </div>
+              </li>
+              {% empty %}
+              <li class="p-6 text-center text-gray-500 text-sm">Nenhuma movimentação recente.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Reports Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+      <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Relatórios Detalhados</h3>
+          <p class="text-sm text-gray-500">Análise granular por responsável.</p>
+        </div>
+
+        <!-- Tab Buttons -->
+        <div class="flex bg-gray-100 p-1 rounded-xl self-start sm:self-auto">
+          <button type="button" data-tab-target="quantidade" {% if not quantity_report %}disabled{% endif %}
+            class="px-4 py-2 text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            Quantidade
+          </button>
+          <button type="button" data-tab-target="valores" {% if not value_report %}disabled{% endif %}
+            class="px-4 py-2 text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            Valores
+          </button>
+          <button type="button" data-tab-target="combinado" {% if not combined_report %}disabled{% endif %}
+            class="px-4 py-2 text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            Combinado
+          </button>
+        </div>
+      </div>
+
+      <div class="p-0">
+        <!-- Quantity Tab -->
+        <div class="tab-panel hidden" data-tab-panel="quantidade">
+          {% if quantity_report %}
+          <div class="relative overflow-x-auto dashboard-table-container">
+            <table class="w-full text-sm text-left dashboard-table">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th class="px-6 py-3 font-semibold sticky-col">Responsável</th>
+                  {% for mes in display_months %}
+                  <th class="px-6 py-3 text-center font-semibold">{{ mes }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for row in quantity_report.rows %}
+                <tr class="bg-white hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 font-medium text-gray-900 sticky-col">{{ row.name }}</td>
+                  {% for value in row.series %}
+                  <td class="px-6 py-4 text-center">
+                    <div class="font-semibold text-gray-900">{{ value.cumulative|dash_number }}</div>
+                    <div class="flex justify-center gap-3 text-xs mt-1 min-h-[1rem]">
+                      <span class="text-green-600 w-10 text-center block">
+                        {% if value.entries %}+{{ value.entries }}{% else %}&nbsp;{% endif %}
+                      </span>
+                      <span class="text-red-600 w-10 text-center block">
+                        {% if value.exits %}-{{ value.exits }}{% else %}&nbsp;{% endif %}
+                      </span>
+                    </div>
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+
+                <!-- Totals Row -->
+                {% if quantity_report.monthly_totals %}
+                <tr class="bg-gray-50 font-semibold border-t-2 border-gray-200">
+                  <td class="px-6 py-4 text-gray-900 sticky-col">TOTAL GERAL</td>
+                  {% for total in quantity_report.monthly_totals %}
+                  <td class="px-6 py-4 text-center text-gray-900">
+                    <div>{{ total.cumulative|dash_number }}</div>
+                    <div class="flex justify-center gap-3 text-xs mt-1 min-h-[1rem]">
+                      <span class="text-green-600 w-10 text-center block">
+                        {% if total.entries %}+{{ total.entries }}{% else %}&nbsp;{% endif %}
+                      </span>
+                      <span class="text-red-600 w-10 text-center block">
+                        {% if total.exits %}-{{ total.exits }}{% else %}&nbsp;{% endif %}
+                      </span>
+                    </div>
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-10 text-center text-gray-500">Sem dados de quantidade para exibir.</div>
+          {% endif %}
+        </div>
+
+        <!-- Values Tab -->
+        <div class="tab-panel hidden" data-tab-panel="valores">
+          {% if value_report %}
+          <div class="relative overflow-x-auto dashboard-table-container">
+            <table class="w-full text-sm text-left dashboard-table">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th class="px-6 py-3 font-semibold sticky-col">Responsável</th>
+                  {% for mes in display_months %}
+                  <th class="px-6 py-3 text-center font-semibold">{{ mes }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for row in value_report.rows %}
+                <tr class="bg-white hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 font-medium text-gray-900 sticky-col">{{ row.name }}</td>
+                  {% for value in row.series %}
+                  <td class="px-6 py-4 text-center">
+                    <div class="font-semibold text-gray-900">{{ value.cumulative|currency_value_or_dash }}</div>
+                    <div class="flex justify-center gap-3 text-xs mt-1 min-h-[1rem]">
+                      <span class="text-green-600 w-16 text-center block">
+                        {% if value.entries %}+{{ value.entries|currency_value }}{% else %}&nbsp;{% endif %}
+                      </span>
+                      <span class="text-red-600 w-16 text-center block">
+                        {% if value.exits %}-{{ value.exits|currency_value }}{% else %}&nbsp;{% endif %}
+                      </span>
+                    </div>
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+                <!-- Totals Row -->
+                {% if value_report.monthly_totals %}
+                <tr class="bg-gray-50 font-semibold border-t-2 border-gray-200">
+                  <td class="px-6 py-4 text-gray-900 sticky-col">TOTAL GERAL</td>
+                  {% for total in value_report.monthly_totals %}
+                  <td class="px-6 py-4 text-center text-gray-900">
+                    <div>{{ total.cumulative|currency_value_or_dash }}</div>
+                    <div class="flex justify-center gap-3 text-xs mt-1 min-h-[1rem]">
+                      <span class="text-green-600 w-16 text-center block">
+                        {% if total.entries %}+{{ total.entries|currency_value }}{% else %}&nbsp;{% endif %}
+                      </span>
+                      <span class="text-red-600 w-16 text-center block">
+                        {% if total.exits %}-{{ total.exits|currency_value }}{% else %}&nbsp;{% endif %}
+                      </span>
+                    </div>
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-10 text-center text-gray-500">Sem dados de valores para exibir.</div>
+          {% endif %}
+        </div>
+
+        <!-- Combined Tab -->
+        <div class="tab-panel hidden" data-tab-panel="combinado">
+          {% if combined_report %}
+          <div class="relative overflow-x-auto dashboard-table-container">
+            <table class="w-full text-sm text-left dashboard-table">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th class="px-6 py-3 font-semibold sticky-col">Responsável</th>
+                  {% for mes in display_months %}
+                  <th class="px-6 py-3 text-center font-semibold">{{ mes }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for row in combined_report.rows %}
+                <tr class="bg-white hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 font-medium text-gray-900 sticky-col">{{ row.name }}</td>
+                  {% for item in row.months %}
+                  <td class="px-6 py-4 text-center">
+                    <div class="grid grid-cols-1 gap-1">
+                      <span class="font-semibold text-gray-900">{{ item.quantity.cumulative|dash_number }}</span>
+                      <span class="text-xs text-gray-500">{{ item.value.cumulative|currency_value_or_dash }}</span>
+                    </div>
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-10 text-center text-gray-500">Sem dados combinados para exibir.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Cashflow Report -->
+    {% if client_cashflow_report %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+      <div class="p-6 border-b border-gray-100">
+        <h3 class="text-lg font-semibold text-gray-900">Fluxo de Clientes x Meses</h3>
+        <p class="text-sm text-gray-500">Detalhamento financeiro por cliente ao longo do tempo.</p>
+      </div>
+      <div class="relative overflow-x-auto dashboard-table-container">
+        <table class="w-full text-sm text-left dashboard-table">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="px-6 py-3 font-semibold min-w-[200px] sticky-col">Cliente</th>
+              {% for mes in client_cashflow_report.months %}
+              <th class="px-6 py-3 text-center font-semibold">{{ mes }}</th>
+              {% endfor %}
+              <th class="px-6 py-3 text-center font-semibold bg-gray-50">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <!-- Summary Rows -->
+            <tr class="bg-gray-50 font-semibold">
+              <td class="px-6 py-3 sticky-col">Total Geral</td>
+              {% for value in client_cashflow_report.summary.total_value.per_month %}
+              <td class="px-6 py-3 text-center">{{ value|currency_value }}</td>
+              {% endfor %}
+              <td class="px-6 py-3 text-center">{{ client_cashflow_report.summary.total_value.total|currency_value }}
+              </td>
+            </tr>
+            <tr class="bg-gray-50/80">
+              <td colspan="{{ client_cashflow_report.months|length|add:'2' }}" class="py-3"></td>
+            </tr>
+            <tr class="bg-gray-50/80 text-gray-700">
+              <td class="px-6 py-2 sticky-col">Ativos (Qtd)</td>
+              {% for value in client_cashflow_report.summary.active.count.per_month %}
+              <td class="px-6 py-2 text-center">{{ value|dash_number }}</td>
+              {% endfor %}
+              <td class="px-6 py-2 text-center">{{ client_cashflow_report.summary.active.count.total|dash_number }}</td>
+            </tr>
+            <tr class="bg-gray-50/80 text-gray-700">
+              <td class="px-6 py-2 sticky-col">Ativos (Valor)</td>
+              {% for value in client_cashflow_report.summary.active.value.per_month %}
+              <td class="px-6 py-2 text-center">{{ value|currency_value }}</td>
+              {% endfor %}
+              <td class="px-6 py-2 text-center">{{ client_cashflow_report.summary.active.value.total|currency_value }}
+              </td>
+            </tr>
+            <tr class="bg-gray-50/80">
+              <td colspan="{{ client_cashflow_report.months|length|add:'2' }}" class="py-3"></td>
+            </tr>
+            <tr class="bg-gray-50/80 text-gray-700">
+              <td class="px-6 py-2 sticky-col">Entradas (Qtd)</td>
+              {% for value in client_cashflow_report.summary.entries.count.per_month %}
+              <td class="px-6 py-2 text-center">{{ value|dash_number }}</td>
+              {% endfor %}
+              <td class="px-6 py-2 text-center">{{ client_cashflow_report.summary.entries.count.total|dash_number }}
+              </td>
+            </tr>
+            <tr class="bg-gray-50/80 text-gray-700">
+              <td class="px-6 py-2 sticky-col">Entradas (Valor)</td>
+              {% for value in client_cashflow_report.summary.entries.value.per_month %}
+              <td class="px-6 py-2 text-center">{{ value|currency_value }}</td>
+              {% endfor %}
+              <td class="px-6 py-2 text-center">{{ client_cashflow_report.summary.entries.value.total|currency_value }}
+              </td>
+            </tr>
+            <tr class="bg-gray-50/80">
+              <td colspan="{{ client_cashflow_report.months|length|add:'2' }}" class="py-3"></td>
+            </tr>
+            <tr class="bg-gray-50/80 text-gray-700">
+              <td class="px-6 py-2 sticky-col">Saídas (Qtd)</td>
+              {% for value in client_cashflow_report.summary.exits.count.per_month %}
+              <td class="px-6 py-2 text-center">{{ value|dash_number }}</td>
+              {% endfor %}
+              <td class="px-6 py-2 text-center">{{ client_cashflow_report.summary.exits.count.total|dash_number }}</td>
+            </tr>
+            <tr class="bg-gray-50/80 text-gray-700">
+              <td class="px-6 py-2 sticky-col">Saídas (Valor)</td>
+              {% for value in client_cashflow_report.summary.exits.value.per_month %}
+              <td class="px-6 py-2 text-center">{{ value|currency_value }}</td>
+              {% endfor %}
+              <td class="px-6 py-2 text-center">{{ client_cashflow_report.summary.exits.value.total|currency_value }}
+              </td>
+            </tr>
+            <tr class="bg-gray-50/80">
+              <td colspan="{{ client_cashflow_report.months|length|add:'2' }}" class="py-3"></td>
+            </tr>
+
+            <!-- Client Rows -->
+            {% for row in client_cashflow_report.rows %}
+            <tr class="bg-white hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-3 font-medium text-gray-900 truncate max-w-[200px] sticky-col bg-white"
+                title="{{ row.name }}">
+                {{ row.name }}
+              </td>
+              {% for value in row.values %}
+              <td class="px-6 py-3 text-center text-gray-600">
+                {% if value %}{{ value|currency_value }}{% else %}-{% endif %}
+              </td>
+              {% endfor %}
+              <td class="px-6 py-3 text-center font-semibold text-gray-900 bg-gray-50/50">
+                {{ row.total|currency_value }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</main>
+{% endwith %}
+
+<!-- Chart.js Scripts -->
+{% if operator_chart_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { usePointStyle: true, padding: 20 }
+      },
+      tooltip: {
+        backgroundColor: '#1f2937',
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: true
+      }
+    },
+    scales: {
+      y: {
+        grid: { borderDash: [4, 4], drawBorder: false },
+        ticks: { padding: 10 }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { padding: 10 }
+      }
+    },
+    elements: {
+      line: { tension: 0.4, borderWidth: 3 },
+      point: { radius: 4, hoverRadius: 6 }
+    }
+  };
+
+  const operatorChartCtx = document.getElementById("operator-chart").getContext("2d");
+  const operatorChartConfig = {{ operator_chart_data| safe }};
+  operatorChartConfig.options = { ...operatorChartConfig.options, ...commonOptions };
+  new Chart(operatorChartCtx, operatorChartConfig);
+</script>
+{% endif %}
+
+{% if operator_value_chart_data %}
+<script>
+  const operatorValueChartCtx = document.getElementById("operator-value-chart").getContext("2d");
+  const operatorValueChartConfig = {{ operator_value_chart_data| safe }};
+  operatorValueChartConfig.options = { ...operatorValueChartConfig.options, ...commonOptions };
+  new Chart(operatorValueChartCtx, operatorValueChartConfig);
+</script>
+{% endif %}
+
+<!-- Tab Logic -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const buttons = Array.from(document.querySelectorAll('[data-tab-target]'));
+    const panels = Array.from(document.querySelectorAll('[data-tab-panel]'));
+
+    if (!buttons.length) return;
+
+    const activeClasses = ['bg-white', 'text-[#311E5C]', 'shadow-sm'];
+    const inactiveClasses = ['text-gray-500', 'hover:text-gray-700'];
+
+    function setTab(key) {
+      buttons.forEach(btn => {
+        const isActive = btn.dataset.tabTarget === key;
+        // Reset classes
+        btn.className = `px-4 py-2 text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? 'bg-white text-[#311E5C] shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`;
+      });
+
+      panels.forEach(panel => {
+        panel.classList.toggle('hidden', panel.dataset.tabPanel !== key);
+      });
+    }
+
+    // Initialize with first non-disabled button
+    const initialButton = buttons.find(btn => !btn.disabled) || buttons[0];
+    if (initialButton) {
+      setTab(initialButton.dataset.tabTarget);
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        setTab(btn.dataset.tabTarget);
+      });
+    });
+  });
+</script>
+{% endblock %}

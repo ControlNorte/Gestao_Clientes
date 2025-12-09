@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Preferências de reunião{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="flex flex-wrap items-center gap-4">
+      <a href="{% url 'clientes:reunioes_lista' %}" class="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#D0D5DD] bg-white text-[#311E5C] shadow-sm hover:border-[#FFC42E] hover:bg-[#FFF4DB]/50 focus:outline-none focus:ring-4 focus:ring-[#FFC42E]/30 transition">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+        <span class="sr-only">Voltar</span>
+      </a>
+      <div>
+        <p class="text-sm text-gray-500">Preferências de reunião</p>
+        <h1 class="text-2xl md:text-3xl font-semibold text-[#311E5C]">{{ client.nome }}</h1>
+        <p class="text-sm text-gray-500">Responsável do cliente: <span class="font-semibold text-gray-800">{{ client.responsavel }}</span> ·
+          {% if client.quer_alinhamento %}<span class="text-green-700 font-medium">Requer alinhamento</span>{% else %}<span class="text-gray-600">Sem alinhamento obrigatório</span>{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Alinhamento -->
+      <div class="bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div class="p-6 border-b border-gray-100 flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-[#7c3aed] font-semibold">Alinhamento</p>
+            <h2 class="text-lg font-semibold text-gray-900">Preferências</h2>
+            <p class="text-sm text-gray-500">Responsável: {{ client.responsavel }}</p>
+          </div>
+          {% if pref_alinhamento %}
+          <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full">Salvo</span>
+          {% else %}
+          <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded-full">Pendente</span>
+          {% endif %}
+        </div>
+        <div class="px-6 pb-6">
+          <form method="post" class="space-y-6" data-range-form="alinhamento" data-range-label="alinhamento">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="alinhamento">
+            {{ form_alinhamento.consultor }}
+            {% if form_alinhamento.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {% for error in form_alinhamento.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-800 mb-2">Período</label>
+              <div class="flex flex-wrap items-center gap-2">
+                {{ form_alinhamento.dia_pref_inicio }}
+                <span class="text-sm text-gray-600">à</span>
+                {{ form_alinhamento.dia_pref_fim }}
+              </div>
+              {% if form_alinhamento.dia_pref_inicio.errors or form_alinhamento.dia_pref_fim.errors %}
+              <div class="mt-1 text-sm text-red-600 space-y-1">
+                {% for error in form_alinhamento.dia_pref_inicio.errors %}<p>{{ error }}</p>{% endfor %}
+                {% for error in form_alinhamento.dia_pref_fim.errors %}<p>{{ error }}</p>{% endfor %}
+              </div>
+              {% endif %}
+              <p data-range-error class="mt-1 text-sm text-red-600 hidden"></p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.dia_semana_pref.id_for_label }}">Preferência dia da semana</label>
+                {{ form_alinhamento.dia_semana_pref }}
+                {% if form_alinhamento.dia_semana_pref.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.dia_semana_pref.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.horario_pref.id_for_label }}">Horário preferido</label>
+                {{ form_alinhamento.horario_pref }}
+                {% if form_alinhamento.horario_pref.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.horario_pref.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.local.id_for_label }}">Local</label>
+                {{ form_alinhamento.local }}
+                {% if form_alinhamento.local.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.local.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.local_descricao.id_for_label }}">Detalhes do local</label>
+                {{ form_alinhamento.local_descricao }}
+                {% if form_alinhamento.local_descricao.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.local_descricao.errors|striptags }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.duracao_minutos.id_for_label }}">Duração (minutos)</label>
+                {{ form_alinhamento.duracao_minutos }}
+                {% if form_alinhamento.duracao_minutos.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.duracao_minutos.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.data_sugerida.id_for_label }}">Dia sugerido</label>
+                {{ form_alinhamento.data_sugerida }}
+                {% if form_alinhamento.data_sugerida.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.data_sugerida.errors|striptags }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_alinhamento.observacoes.id_for_label }}">Observações</label>
+              {{ form_alinhamento.observacoes }}
+              {% if form_alinhamento.observacoes.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form_alinhamento.observacoes.errors|striptags }}</p>
+              {% endif %}
+            </div>
+
+            <button
+              class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-[#311E5C] rounded-xl shadow-sm hover:bg-[#271547] transition"
+              type="submit">
+              Salvar alinhamento
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Fechamento -->
+      <div class="bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div class="p-6 border-b border-gray-100 flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-[#0f766e] font-semibold">Fechamento</p>
+            <h2 class="text-lg font-semibold text-gray-900">Preferências</h2>
+            <p class="text-sm text-gray-500">Responsável: consultor</p>
+          </div>
+          {% if pref_fechamento %}
+          <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full">Salvo</span>
+          {% else %}
+          <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded-full">Pendente</span>
+          {% endif %}
+        </div>
+        <div class="px-6 pb-6">
+          <form method="post" class="space-y-6" data-range-form="fechamento" data-range-label="fechamento">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="fechamento">
+            {% if form_fechamento.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {% for error in form_fechamento.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-800 mb-2">Período</label>
+              <div class="flex flex-wrap items-center gap-2">
+                {{ form_fechamento.dia_pref_inicio }}
+                <span class="text-sm text-gray-600">à</span>
+                {{ form_fechamento.dia_pref_fim }}
+              </div>
+              {% if form_fechamento.dia_pref_inicio.errors or form_fechamento.dia_pref_fim.errors %}
+              <div class="mt-1 text-sm text-red-600 space-y-1">
+                {% for error in form_fechamento.dia_pref_inicio.errors %}<p>{{ error }}</p>{% endfor %}
+                {% for error in form_fechamento.dia_pref_fim.errors %}<p>{{ error }}</p>{% endfor %}
+              </div>
+              {% endif %}
+              <p data-range-error class="mt-1 text-sm text-red-600 hidden"></p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.dia_semana_pref.id_for_label }}">Preferência dia da semana</label>
+                {{ form_fechamento.dia_semana_pref }}
+                {% if form_fechamento.dia_semana_pref.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.dia_semana_pref.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.horario_pref.id_for_label }}">Horário preferido</label>
+                {{ form_fechamento.horario_pref }}
+                {% if form_fechamento.horario_pref.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.horario_pref.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.local.id_for_label }}">Local</label>
+                {{ form_fechamento.local }}
+                {% if form_fechamento.local.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.local.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.local_descricao.id_for_label }}">Detalhes do local</label>
+                {{ form_fechamento.local_descricao }}
+                {% if form_fechamento.local_descricao.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.local_descricao.errors|striptags }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.duracao_minutos.id_for_label }}">Duração (minutos)</label>
+                {{ form_fechamento.duracao_minutos }}
+                {% if form_fechamento.duracao_minutos.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.duracao_minutos.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.data_sugerida.id_for_label }}">Dia sugerido</label>
+                {{ form_fechamento.data_sugerida }}
+                {% if form_fechamento.data_sugerida.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.data_sugerida.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.consultor.id_for_label }}">Consultor</label>
+                {{ form_fechamento.consultor }}
+                {% if form_fechamento.consultor.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form_fechamento.consultor.errors|striptags }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-800 mb-1" for="{{ form_fechamento.observacoes.id_for_label }}">Observações</label>
+              {{ form_fechamento.observacoes }}
+              {% if form_fechamento.observacoes.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form_fechamento.observacoes.errors|striptags }}</p>
+              {% endif %}
+            </div>
+
+            {% if client.quer_alinhamento and not pref_alinhamento %}
+            <p class="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+              Cadastre o alinhamento antes de salvar o fechamento.
+            </p>
+            {% endif %}
+            <button
+              class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-[#0f766e] rounded-xl shadow-sm hover:bg-[#0b5f58] transition"
+              type="submit">
+              Salvar fechamento
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  (function() {
+    const forms = document.querySelectorAll('[data-range-form]');
+    const withinRange = (value) => Number.isFinite(value) && value >= 1 && value <= 31;
+
+    forms.forEach((form) => {
+      const startInput = form.querySelector('[data-range-start]');
+      const endInput = form.querySelector('[data-range-end]');
+      const errorEl = form.querySelector('[data-range-error]');
+      if (!startInput || !endInput || !errorEl) return;
+
+      const label = form.getAttribute('data-range-label') || 'período';
+
+      const showError = (message) => {
+        errorEl.textContent = message || '';
+        errorEl.classList.toggle('hidden', !message);
+      };
+
+      const validateRange = () => {
+        const start = startInput.value ? parseInt(startInput.value, 10) : NaN;
+        const end = endInput.value ? parseInt(endInput.value, 10) : NaN;
+        if (withinRange(start) && withinRange(end) && start >= end) {
+          showError(`No ${label}, o início deve ser menor que o fim.`);
+          return false;
+        }
+        showError('');
+        return true;
+      };
+
+      startInput.addEventListener('input', validateRange);
+      endInput.addEventListener('input', validateRange);
+      form.addEventListener('submit', (event) => {
+        if (!validateRange()) {
+          event.preventDefault();
+          endInput.focus();
+        }
+      });
+    });
+  })();
+</script>
+{% endwith %}
+{% endblock %}

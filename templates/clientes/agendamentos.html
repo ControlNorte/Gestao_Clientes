@@ -1,0 +1,648 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load clientes_filters %}
+
+{% block title %}Agendamentos - Gestão de Clientes{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+        <h1 class="text-2xl md:text-3xl font-semibold text-[#311E5C]">Agendamentos</h1>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{% url 'clientes:responsaveis' %}"
+                class="inline-flex items-center gap-2 text-sm font-medium text-[#311E5C] hover:text-[#311E5C] px-3 py-2 rounded-lg border border-[#C9CBCC] bg-white shadow-sm hover:shadow transition">
+                <ion-icon name="ellipsis-vertical-sharp" class="text-base"></ion-icon>
+                <span>Mais opções</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="border-b border-[#C9CBCC]/60 mb-8">
+        <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+            {% if user.is_superuser or user|has_group:"Administrador" %}
+            <li>
+                <a href="{% url 'clientes:dashboard' %}"
+                    class="inline-block px-3 py-2 {% if current_url == 'dashboard' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'clientes:client_list' %}"
+                    class="inline-block px-3 py-2 {% if current_url == 'client_list' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+                    Clientes
+                </a>
+            </li>
+            {% endif %}
+            <li>
+                <a href="{% url 'clientes:reunioes_lista' %}"
+                    class="inline-block px-3 py-2 {% if current_url == 'reunioes_lista' or current_url == 'reuniao_preferencias' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+                    Reuniões
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'clientes:agendamentos' %}"
+                    class="inline-block px-3 py-2 {% if current_url == 'agendamentos' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+                    Agendamentos
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <!-- Header Controls -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div class="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6 w-fit">
+            <button
+                class="tab-btn px-6 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none bg-white text-[#311E5C] shadow-sm"
+                data-tab="alinhamento">
+                Alinhamento
+            </button>
+            <button
+                class="tab-btn px-6 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none text-gray-500 hover:text-[#311E5C]"
+                data-tab="fechamento">
+                Fechamento
+            </button>
+        </div>
+        <div class="flex items-center gap-4 bg-white p-2 rounded-xl shadow-sm border border-gray-100">
+            <button id="prevMonth" class="p-2 hover:bg-gray-100 rounded-lg transition-colors text-[#311E5C]">
+                <ion-icon name="chevron-back"></ion-icon>
+            </button>
+            <div class="flex items-center gap-2">
+                <select id="monthSelect"
+                    class="bg-transparent font-semibold text-[#311E5C] focus:outline-none cursor-pointer">
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <select id="yearSelect"
+                    class="bg-transparent font-semibold text-[#311E5C] focus:outline-none cursor-pointer">
+                    <!-- JS will populate years -->
+                </select>
+            </div>
+            <button id="nextMonth" class="p-2 hover:bg-gray-100 rounded-lg transition-colors text-[#311E5C]">
+                <ion-icon name="chevron-forward"></ion-icon>
+            </button>
+        </div>
+    </div>
+    <!-- Content Area -->
+    <div id="loadingIndicator" class="hidden flex justify-center py-12">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#311E5C]"></div>
+    </div>
+
+    <div id="agendamentosContent"
+        class="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 min-h-[400px]">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">Data
+                        </th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Horário
+                        </th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">Status
+                        </th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Observação
+                        </th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">Ações
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="divide-y divide-gray-100">
+                    <!-- Rows will be populated by JS -->
+                </tbody>
+            </table>
+        </div>
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="bg-gray-50 p-4 rounded-full mb-4">
+                <ion-icon name="calendar-outline" class="text-3xl text-gray-400"></ion-icon>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Nenhum agendamento encontrado</h3>
+            <p class="text-gray-500 mt-1">Selecione outro mês ou adicione clientes.</p>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* Tooltip Speech Bubble Styles */
+    .tooltip-container {
+        position: relative;
+        cursor: help;
+    }
+
+    /* Template bubble - hidden by default, used as source */
+    .tooltip-bubble-template {
+        display: none;
+    }
+
+    /* Portal bubble - appended to body */
+    .tooltip-portal {
+        position: absolute;
+        width: 280px;
+        background-color: #311E5C;
+        color: white;
+        text-align: left;
+        border-radius: 12px;
+        padding: 12px;
+        z-index: 9999;
+        /* High z-index to stay on top */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .tooltip-portal.visible {
+        opacity: 1;
+    }
+
+    .tooltip-portal::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: var(--arrow-left, 50%);
+        margin-left: -8px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: #311E5C transparent transparent transparent;
+    }
+
+    .tooltip-portal.bottom-positioned::after {
+        top: auto;
+        bottom: 100%;
+        border-color: transparent transparent #311E5C transparent;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- State ---
+        let currentData = [];
+        const state = {
+            month: new Date().getMonth() + 1,
+            year: new Date().getFullYear(),
+            tab: 'alinhamento', // or 'fechamento'
+            urls: {
+                list: "{% url 'clientes:agendamentos_api_list' %}",
+                save: "{% url 'clientes:agendamentos_api_save' %}"
+            }
+        };
+
+        // --- Elements ---
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const prevBtn = document.getElementById('prevMonth');
+        const nextBtn = document.getElementById('nextMonth');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tableBody = document.getElementById('tableBody');
+        const loadingEl = document.getElementById('loadingIndicator');
+        const contentEl = document.getElementById('agendamentosContent');
+        const emptyState = document.getElementById('emptyState');
+
+        // --- Initialization ---
+        initYearSelect();
+        monthSelect.value = state.month;
+        yearSelect.value = state.year;
+        fetchData();
+
+        // --- Event Listeners ---
+        monthSelect.addEventListener('change', (e) => {
+            state.month = parseInt(e.target.value);
+            fetchData();
+        });
+
+        yearSelect.addEventListener('change', (e) => {
+            state.year = parseInt(e.target.value);
+            fetchData();
+        });
+
+        prevBtn.addEventListener('click', () => changeMonth(-1));
+        nextBtn.addEventListener('click', () => changeMonth(1));
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.tab = btn.dataset.tab;
+                updateTabsUI();
+                renderTable();
+            });
+        });
+
+        // --- Functions ---
+        function initYearSelect() {
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear - 2; i <= currentYear + 2; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = i;
+                yearSelect.appendChild(opt);
+            }
+        }
+
+        function changeMonth(delta) {
+            let newMonth = state.month + delta;
+            let newYear = state.year;
+
+            if (newMonth > 12) {
+                newMonth = 1;
+                newYear++;
+            } else if (newMonth < 1) {
+                newMonth = 12;
+                newYear--;
+            }
+
+            state.month = newMonth;
+            state.year = newYear;
+
+            monthSelect.value = state.month;
+            yearSelect.value = state.year;
+            fetchData();
+        }
+
+        function updateTabsUI() {
+            tabBtns.forEach(btn => {
+                if (btn.dataset.tab === state.tab) {
+                    btn.classList.remove('text-gray-500', 'hover:text-[#311E5C]', 'bg-transparent');
+                    btn.classList.add('bg-white', 'text-[#311E5C]', 'shadow-sm');
+                } else {
+                    btn.classList.add('text-gray-500', 'hover:text-[#311E5C]', 'bg-transparent');
+                    btn.classList.remove('bg-white', 'text-[#311E5C]', 'shadow-sm');
+                }
+            });
+        }
+
+        async function fetchData() {
+            loadingEl.classList.remove('hidden');
+            contentEl.classList.add('opacity-50', 'pointer-events-none');
+
+            try {
+                const url = `${state.urls.list}?mes=${state.month}&ano=${state.year}`;
+                console.log('Fetching:', url);
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('API Error Response:', text);
+                    throw new Error(`Erro na API (${response.status}): ${text.substring(0, 100)}`);
+                }
+
+                const json = await response.json();
+                console.log('API Data:', json);
+
+                if (json.error) {
+                    throw new Error(json.error);
+                }
+
+                currentData = json.data;
+                if (!currentData) {
+                    throw new Error('Formato de dados inválido (data ausente)');
+                }
+
+                renderTable();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+
+                // Show detailed error for debugging
+                mostrarNotificacao(`Erro ao carregar dados: ${error.message}`, 'error');
+            } finally {
+                loadingEl.classList.add('hidden');
+                contentEl.classList.remove('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+
+            // Filter clients based on logic
+            // For 'fechamento' tab, show all active clients?
+            // Logic: 
+            // Alinhamento Tab: Show clients where quer_alinhamento=True
+            // Fechamento Tab: Show All clients. BUT if quer_alinhamento=True, validate against alinhamento status.
+
+            let filteredData = currentData;
+            if (state.tab === 'alinhamento') {
+                filteredData = currentData.filter(item => item.client.quer_alinhamento);
+            } else {
+                // Fechamento tab shows everyone active (implied by API returning all active)
+            }
+
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filteredData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors group';
+
+                const isFechamento = state.tab === 'fechamento';
+                const agendamento = isFechamento ? item.agendamento.fechamento : item.agendamento.alinhamento;
+                const pref = isFechamento ? item.prefs.fechamento : item.prefs.alinhamento;
+
+                // Validation Logic for Fechamento
+                let isDisabled = false;
+                let disabledReason = "";
+
+                if (isFechamento && item.client.quer_alinhamento) {
+                    // Check if Alinhamento is scheduled/done
+                    const alin = item.agendamento.alinhamento;
+                    const alinValid = alin.status === 'AGENDADO' || alin.status === 'REALIZADO';
+                    if (!alinValid) {
+                        isDisabled = true;
+                        disabledReason = "Necessário agendar Alinhamento primeiro.";
+                    }
+                }
+
+                // Client Name & Tooltip
+                const tooltipContent = pref ? `
+                <div class="space-y-1 text-sm">
+                    <p><span class="font-bold text-[#FFC42E]">Responsável:</span> ${pref.responsavel || '-'}</p>
+                    <p><span class="font-bold text-[#FFC42E]">Dia:</span> ${pref.dia_semana || '-'}</p>
+                    <p><span class="font-bold text-[#FFC42E]">Horário:</span> ${pref.horario || '-'}</p>
+                    <p><span class="font-bold text-[#FFC42E]">Local:</span> ${pref.local || '-'}</p>
+                    <p><span class="font-bold text-[#FFC42E]">Duração:</span> ${pref.duracao || '-'}</p>
+                    <p><span class="font-bold text-[#FFC42E]">Dia sugerido:</span> ${pref.dia_sugerido || '-'}</p>
+                    ${pref.consultor ? `<p><span class="font-bold text-[#FFC42E]">Consultor:</span> ${pref.consultor}</p>` : ''}
+                    <p class="italic text-gray-300 border-t border-white/20 pt-1 mt-1">${pref.observacoes || 'Sem observações'}</p>
+                </div>
+            ` : `<div class="text-sm">Sem preferências cadastradas</div>`;
+
+                const nameCell = `
+                <td class="px-6 py-4">
+                    <div class="tooltip-container inline-block" data-client-id="${item.client.id}">
+                        <span class="font-medium text-gray-900 border-b border-dashed border-gray-300 cursor-help">${item.client.nome}</span>
+                        ${isDisabled ? `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800" title="${disabledReason}"><ion-icon name="lock-closed" class="mr-1"></ion-icon> Bloqueado</span>` : ''}
+                        <div class="tooltip-bubble-template">
+                            ${tooltipContent}
+                        </div>
+                    </div>
+                </td>
+            `;
+
+                // ... (rest of input definitions remain same, they are just strings) ...
+
+                // Inputs
+                // Date
+                const dateValue = agendamento.data || '';
+                const dateInput = `
+                <input type="date" 
+                    value="${dateValue}" 
+                    class="w-full text-sm border-gray-200 rounded-lg focus:ring-[#311E5C] focus:border-[#311E5C] disabled:opacity-50 disabled:bg-gray-100"
+                    onchange="saveData(${item.client.id}, 'data', this.value)"
+                    ${isDisabled ? 'disabled' : ''}
+                />
+            `;
+
+                // Time
+                const timeValue = agendamento.horario || '';
+                const timeInput = `
+                <input type="text" 
+                    value="${timeValue}" 
+                    placeholder="00:00"
+                    class="w-full text-sm border-gray-200 rounded-lg focus:ring-[#311E5C] focus:border-[#311E5C] disabled:opacity-50 disabled:bg-gray-100"
+                    onchange="saveData(${item.client.id}, 'horario', this.value)"
+                    ${isDisabled ? 'disabled' : ''}
+                />
+            `;
+
+                // Status
+                const statusValue = agendamento.status;
+                const statusOptions = [
+                    { v: 'PENDENTE', l: 'Pendente', c: 'bg-gray-100 text-gray-800' },
+                    { v: 'AGENDADO', l: 'Agendado', c: 'bg-blue-100 text-blue-800' },
+                    { v: 'REALIZADO', l: 'Realizado', c: 'bg-green-100 text-green-800' },
+                    { v: 'CANCELADO', l: 'Cancelado', c: 'bg-red-100 text-red-800' },
+                ];
+
+                const statusSelect = `
+                <select 
+                    class="w-full text-sm border-gray-200 rounded-lg focus:ring-[#311E5C] focus:border-[#311E5C] disabled:opacity-50 disabled:bg-gray-100"
+                    onchange="saveData(${item.client.id}, 'status', this.value)"
+                    ${isDisabled ? 'disabled' : ''}
+                >
+                    ${statusOptions.map(opt => `<option value="${opt.v}" ${statusValue === opt.v ? 'selected' : ''}>${opt.l}</option>`).join('')}
+                </select>
+            `;
+
+                // Obs
+                const obsValue = agendamento.observacao || '';
+                const obsInput = `
+                <input type="text" 
+                    value="${obsValue}" 
+                    placeholder="Observações..."
+                    class="w-full text-sm border-gray-200 rounded-lg focus:ring-[#311E5C] focus:border-[#311E5C] disabled:opacity-50 disabled:bg-gray-100"
+                    onchange="saveData(${item.client.id}, 'observacao', this.value)"
+                    ${isDisabled ? 'disabled' : ''}
+                />
+            `;
+
+                // Save Button
+                const actions = `
+                <td class="px-6 py-4">
+                    <div id="status-${item.client.id}" class="text-xs text-gray-400">
+                        <!-- 'Salvo!' message location -->
+                    </div>
+                </td>
+            `;
+
+                tr.innerHTML = `
+                ${nameCell}
+                <td class="px-6 py-4">${dateInput}</td>
+                <td class="px-6 py-4">${timeInput}</td>
+                <td class="px-6 py-4">${statusSelect}</td>
+                <td class="px-6 py-4">${obsInput}</td>
+                ${actions}
+            `;
+                tableBody.appendChild(tr);
+            });
+
+            // Setup events for the new tooltips
+            setupTooltips();
+        }
+
+        // --- Tooltip Portal Logic ---
+        function setupTooltips() {
+            const containers = document.querySelectorAll('.tooltip-container');
+            containers.forEach(container => {
+                container.addEventListener('mouseenter', showTooltip);
+                container.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        let currentTooltip = null;
+
+        function showTooltip(e) {
+            const container = e.currentTarget;
+            const template = container.querySelector('.tooltip-bubble-template');
+            if (!template) return;
+
+            // Remove existing if any (edge case)
+            if (currentTooltip) hideTooltip();
+
+            // Create portal element
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip-portal';
+            tooltip.innerHTML = template.innerHTML;
+            document.body.appendChild(tooltip);
+            currentTooltip = tooltip;
+
+            // Position it
+            const rect = container.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+
+            // Default: Center Above
+            let top = rect.top + window.scrollY - tooltip.offsetHeight - 10;
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tooltip.offsetWidth / 2);
+
+            // Viewport boundary checks
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
+
+            // 1. Check Left Edge
+            if (left < scrollX + 10) {
+                left = scrollX + 10;
+            }
+
+            // 2. Check Right Edge
+            if (left + tooltipRect.width > scrollX + viewportWidth - 10) {
+                left = scrollX + viewportWidth - tooltipRect.width - 10;
+            }
+
+            // 3. Check Top Edge (if clipped top, move to bottom)
+            if (top < scrollY + 10) {
+                top = rect.bottom + scrollY + 10;
+                tooltip.classList.add('bottom-positioned');
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+
+            // Adjust arrow position
+            const targetCenter = rect.left + window.scrollX + (rect.width / 2);
+            const arrowLeft = targetCenter - left;
+
+            const minArrowPos = 18;
+            const maxArrowPos = tooltipRect.width - 18;
+            const clampedArrowLeft = Math.max(minArrowPos, Math.min(arrowLeft, maxArrowPos));
+
+            tooltip.style.setProperty('--arrow-left', `${clampedArrowLeft}px`);
+
+            // Trigger reflow/animation
+            requestAnimationFrame(() => {
+                tooltip.classList.add('visible');
+            });
+        }
+
+        function hideTooltip() {
+            if (currentTooltip) {
+                currentTooltip.remove();
+                currentTooltip = null;
+            }
+        }
+
+        // Expose saveData to global scope so inline handlers can find it
+        window.saveData = async function (clientId, field, value) {
+            // Update local model first for responsiveness
+            const item = currentData.find(i => i.client.id === clientId);
+            if (!item) return;
+
+            const isFechamento = state.tab === 'fechamento';
+            const target = isFechamento ? item.agendamento.fechamento : item.agendamento.alinhamento;
+            target[field] = value;
+
+            // Show saving...
+            const statusEl = document.getElementById(`status-${clientId}`);
+            if (statusEl) statusEl.innerHTML = '<span class="text-blue-500"><ion-icon name="sync-outline" class="animate-spin"></ion-icon></span>';
+
+            // Prepare payload
+            const payload = {
+                tipo: state.tab,
+                client_id: clientId,
+                mes: state.month,
+                ano: state.year,
+                [field]: value,
+                // We need to send other fields too to avoid overwriting them with defaults if the API expected full object
+                // But our API uses update_or_create with defaults. If I send only one field, I need to make sure I send others existing in my local state 
+                // OR the API endpoint logic should be smart enough.
+                // My API implementation uses `data.get("data")` etc. If I don't send `horario`, it defaults to "". 
+                // So I MUST send the full object state for that record.
+                data: target.data,
+                horario: target.horario,
+                status: target.status,
+                observacao: target.observacao
+            };
+
+            try {
+                const response = await fetch(state.urls.save, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('Falha ao salvar');
+
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-green-500 font-bold"><ion-icon name="checkmark-outline"></ion-icon></span>';
+                    setTimeout(() => { statusEl.innerHTML = ''; }, 2000);
+                }
+
+                // If updated Alinhamento status, we might need to re-render to unlock Fechamento items if logic requires
+                if (!isFechamento && field === 'status') {
+                    // Optimization: only re-render if it might affect something. Simpler: just re-render.
+                    // Wait a bit or re-render immediately? 
+                    // Since validation is client-side based on `currentData` which we just updated, 
+                    // we should be able to just re-render to unlock rows in the other tab (if user switches).
+                    // Actually, if I update Alinhamento, then switch to Fechamento tab, renderTable is called and validation runs.
+                    // The issue is: does 'Fechamento' tab need to know Alinhamento is DONE?
+                    // Yes. And we updated `currentData`. So it should work fine.
+                }
+
+            } catch (error) {
+                console.error(error);
+                if (statusEl) statusEl.innerHTML = '<span class="text-red-500">Erro!</span>';
+                mostrarNotificacao('Erro ao salvar alteração.', 'error');
+            }
+        };
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endwith %}
+{% endblock %}

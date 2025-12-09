@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Usuários · Gestão de Clientes{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+    <section
+      class="relative overflow-hidden rounded-3xl bg-[#311E5C] text-white shadow-xl transition-all hover:shadow-2xl">
+      <div class="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-[#FFC42E] opacity-10 blur-3xl rounded-full"></div>
+      <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-72 h-72 bg-[#7c3aed] opacity-20 blur-3xl rounded-full"></div>
+      <div class="relative px-8 py-10 text-center">
+        <p class="text-sm uppercase tracking-widest text-white/70 mb-1">Em breve</p>
+        <h1 class="text-3xl font-bold mb-3">Gestão de Usuários</h1>
+        <p class="text-white/80 max-w-3xl mx-auto">Aqui você poderá administrar perfis de acesso, convites e permissões
+          do time.</p>
+      </div>
+    </section>
+
+    <nav class="border-b border-[#C9CBCC]/60 mb-8">
+      <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+        <li>
+          <a href="{% url 'clientes:dashboard' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'dashboard' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:client_list' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Clientes
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:reunioes_lista' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'reunioes_lista' or current_url == 'reuniao_preferencias' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Reuniões
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:agendamentos' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'agendamentos' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Agendamentos
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-10 text-center space-y-4">
+      <p class="text-gray-600 text-lg">Área em construção. Novidades em breve.</p>
+      <a class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-[#311E5C] rounded-xl shadow-sm hover:bg-[#271547] transition"
+        href="{% url 'clientes:dashboard' %}">Voltar para o dashboard</a>
+    </div>
+  </div>
+</main>
+{% endwith %}
+{% endblock %}

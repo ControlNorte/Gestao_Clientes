@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load clientes_filters %}
+
+{% block title %}Valor · {{ client.nome }}{% endblock %}
+
+{% block content %}
+{% with current_url=request.resolver_match.url_name %}
+<main class="pt-8 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      class="relative overflow-hidden rounded-3xl bg-[#311E5C] text-white shadow-xl mb-8 transition-all hover:shadow-2xl">
+      <div class="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-[#FFC42E] opacity-10 blur-3xl rounded-full"></div>
+      <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-72 h-72 bg-[#7c3aed] opacity-20 blur-3xl rounded-full"></div>
+      <div class="relative px-8 py-10">
+        <p class="text-sm uppercase tracking-widest text-white/70 mb-1">Clientes</p>
+        <h1 class="text-3xl font-bold mb-3">Alterar valor / permuta</h1>
+        <p class="text-white/80">Cliente: {{ client.nome }} · Valor atual: {{ client.valor|currency }} · Permuta:
+          {{ client.permuta|yesno:"Sim,Não" }}</p>
+      </div>
+    </section>
+
+    <nav class="border-b border-[#C9CBCC]/60 mb-8">
+      <ul class="flex flex-wrap gap-4 text-sm font-medium text-[#311E5C]/80">
+        <li>
+          <a href="{% url 'clientes:dashboard' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'dashboard' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:client_list' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'client_list' or current_url == 'client_create' or current_url == 'client_update' or current_url == 'client_delete' or current_url == 'client_transfer' or current_url == 'client_exit' or current_url == 'client_import' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Clientes
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:reunioes_lista' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'reunioes_lista' or current_url == 'reuniao_preferencias' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Reuniões
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'clientes:agendamentos' %}"
+            class="inline-block px-3 py-2 {% if current_url == 'agendamentos' %}text-[#311E5C] border-b-2 border-[#FFC42E]{% else %}hover:text-[#311E5C] hover:border-b-2 hover:border-[#FFC42E]/70 transition{% endif %}">
+            Agendamentos
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-6 border-b border-gray-100">
+        <h2 class="text-xl font-semibold text-gray-900">Nova configuração</h2>
+        <p class="text-sm text-gray-500">Atualize valor e status da permuta, registrando motivo e razão da alteração.
+        </p>
+      </div>
+      <div class="p-6">
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+          {% if form.errors %}
+          <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {% for field in form %}
+            {% for error in field.errors %}
+            <div>{{ error }}</div>
+            {% endfor %}
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Novo valor (R$)</label>
+              {{ form.valor }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Data</label>
+              {{ form.data }}
+            </div>
+            <div class="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 md:col-span-2">
+              {{ form.permuta }}
+              <label class="text-sm text-gray-700" for="{{ form.permuta.id_for_label }}">Cliente em permuta</label>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+              {{ form.motivo }}
+              <datalist id="lista-motivos-valor">
+                {% for motivo in motivos_saida %}
+                <option value="{{ motivo }}">
+                  {% endfor %}
+              </datalist>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Razão</label>
+              {{ form.razao }}
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row sm:justify-between gap-3 pt-2">
+            <a class="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
+              href="{% url 'clientes:client_list' %}">Cancelar</a>
+            <button
+              class="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-white bg-[#311E5C] rounded-xl shadow-sm hover:bg-[#271547] transition"
+              type="submit">Registrar alteração</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+{% endwith %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const permutaCheckbox = document.getElementById("{{ form.permuta.id_for_label }}");
+    const valorInput = document.getElementById("{{ form.valor.id_for_label }}");
+    if (!permutaCheckbox || !valorInput) return;
+
+    const toggleValor = () => {
+      if (permutaCheckbox.checked) {
+        valorInput.value = "0";
+        valorInput.setAttribute("readonly", "readonly");
+      } else {
+        valorInput.removeAttribute("readonly");
+      }
+    };
+
+    permutaCheckbox.addEventListener("change", toggleValor);
+    toggleValor();
+  });
+</script>
+{% endblock %}
