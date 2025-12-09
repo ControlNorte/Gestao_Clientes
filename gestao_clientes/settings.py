@@ -31,6 +31,15 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# CSRF Trusted Origins for production
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://gestaoclientes-production.up.railway.app',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
+
+# Login URL - redirect to custom login page
+LOGIN_URL = '/admin/login/'
 
 # Application definition
 
