@@ -58,7 +58,11 @@ class Migration(migrations.Migration):
                 ],
             ),
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name="reuniaopreferencia",
+            name="data_sugerida",
+        ),
+        migrations.AddField(
             model_name="reuniaopreferencia",
             name="data_sugerida",
             field=models.PositiveSmallIntegerField(
